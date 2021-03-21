@@ -31,7 +31,9 @@ function getToken(req, res){
     axios(config)
       .then(function (response) {
         console.log('ok')
-        console.log(response.data)        
+        console.log(response.access_token)        
+        console.log(response.data.access_token)        
+        console.log(response.body.access_token)        
       })
       .catch(function (error) {
         console.log(error);
