@@ -11,12 +11,12 @@ function getToken(req, res){
     params.append('client_id', '8909978435931711');
     params.append('client_secret', 'v6GbWGKASUGmarVRaHIMJ3WCRdjetfNZ');
     params.append('code', code);
-    params.append('redirect_uri', 'https://mlivre.herokuapp.com/tokenCode');
+    params.append('redirect_uri', 'https://mlivre.herokuapp.com/home');
 
     axios.post('https://auth.mercadolibre.com.ar/oauth/token', params)
       .then(function (response) {
         console.log('ok')
-        console.log(response.query)
+        console.log(response.body)        
       })
       .catch(function (error) {
         console.log(error);
