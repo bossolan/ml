@@ -7,13 +7,6 @@ function getToken(req, res){
 
     const axios = require('axios')
 
-    /*const params = new URLSearchParams();
-    params.append('grant_type', 'authorization_code');
-    params.append('client_id', '8909978435931711');
-    params.append('client_secret', 'v6GbWGKASUGmarVRaHIMJ3WCRdjetfNZ');
-    params.append('code', code);
-    params.append('redirect_uri', 'https://mlivre.herokuapp.com/home');*/
-
     const data = {
         grant_type: 'authorization_code',
         client_id: '8909978435931711',
@@ -21,6 +14,24 @@ function getToken(req, res){
         code: code,
         redirect_uri: 'https://mlivre.herokuapp.com/home'
     }
+
+    axios.post('https://auth.mercadolibre.com.ar/oauth/token', null, { params: data})
+      .then(response => {
+            console.log(response.data)  
+            console.log(response.body)
+            console.log(response.query)    
+
+      })
+      .catch(err => console.warn(err));
+
+    /*const params = new URLSearchParams();
+    params.append('grant_type', 'authorization_code');
+    params.append('client_id', '8909978435931711');
+    params.append('client_secret', 'v6GbWGKASUGmarVRaHIMJ3WCRdjetfNZ');
+    params.append('code', code);
+    params.append('redirect_uri', 'https://mlivre.herokuapp.com/home');
+
+    
 
     var config = {
         method: 'post',
