@@ -14,8 +14,10 @@ function getToken(req, res){
     params.append('redirect_uri', 'https://mlivre.herokuapp.com/home');
 
     axios.get('https://auth.mercadolibre.com.ar/oauth/token', params)
-      .then(function (response) {
-        console.log(response.body);
+      .then(function (response, res2) {
+        console.log(res2);
+        console.log(response.access_token);
+        console.log(response.data.access_token);
       })
       .catch(function (error) {
         console.log(error);
