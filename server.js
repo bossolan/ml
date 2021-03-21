@@ -9,7 +9,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-app.get('/home', (req, res) => { getToken.getToken(req, res) })
+app.get('/home', (req, res) => { getToken.getToken(req, res, app) })
 
 app.get('/tokenCode', (req, res) => { getTokenCode.getTokenCode(req, res) })
 
