@@ -8,7 +8,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-app.post('/home', (req, res) => { getToken.getToken(req, res) })
+app.get('/home', (req, res) => { getToken.getToken(req, res) })
 
 
 app.listen(process.env.PORT, () =>{
