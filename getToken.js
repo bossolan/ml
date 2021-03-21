@@ -15,7 +15,7 @@ function getToken(req, res){
 
     axios.get('https://auth.mercadolibre.com.ar/oauth/token', params)
       .then(function (response) {
-        console.log(response);
+        console.log(response.data);
       })
       .catch(function (error) {
         console.log(error);
