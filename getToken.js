@@ -33,13 +33,6 @@ function getPedidos()
     if(!global.access_token)
         console.log('Sem Token, interrompendo processo...')
 
-    var data = JSON.stringify({
-        "from": { "postal_code": process.env.MELHOR_ENVIO_CEP_FROM },
-        "to": { "postal_code": cepCliente },
-        "products": produtos
-      }
-      );
-
     const axios = axios.create({
         baseURL: `https://api.mercadolibre.com`,
         timeout: 10000,
