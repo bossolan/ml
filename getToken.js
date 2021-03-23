@@ -30,22 +30,32 @@ function getPedidos()
 {
     console.log('Importando pedidos: ' + global.access_token)
 
-    if(!global.access_token)
-        console.log('Sem Token, interrompendo processo...')
+    //if(!global.access_token)
+    //    console.log('Sem Token, interrompendo processo...')
 
-    const axios = axios.create({
-        baseURL: `https://api.mercadolibre.com`,
-        timeout: 10000,
-        headers: { Authorization: `Bearer ` + global.access_token},
-    });
-
-    axios.get('/users/me')
-    .then(function (response) {
-        console.log(response);        
-      })
-    .catch(function (error) {
-        console.log(error);
-      })
+    var axios = require('axios');
+    var data = JSON.stringify({});
+      
+    var config = {
+          method: 'get',
+          url: 'https://api.mercadolibre.com/users/me',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + global.access_token,            
+          },
+          data: data
+        };
+      
+        axios(config)
+          .then(function (response) {
+            console.log(response)
+            console.log('--------')
+            console.log(response.data)            
+          })
+          .catch(function (error) {
+            console.log(error)
+          });
 }
 
 
