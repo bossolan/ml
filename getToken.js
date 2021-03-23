@@ -50,6 +50,8 @@ function getPedidos()
         }
       };
 
+    const axios = require('axios')
+    
     axios(config)
     .then(function (response) {
         console.log(response)        
