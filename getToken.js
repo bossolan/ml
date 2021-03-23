@@ -40,11 +40,9 @@ function getPedidos()
           method: 'get',
           url: 'https://api.mercadolibre.com/users/me',
           headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + global.access_token,            
           },
-          data: data
+          null
         };
       
         axios(config)
