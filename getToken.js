@@ -20,6 +20,8 @@ function getToken(req, res){
             global.access_token = response.data.access_token
             global.user_id = response.data.user_id
             global.refresh_token = response.data.refresh_token
+
+            console.log('Token Obtido:' + response.data.access_token)
       })
       .catch(err => console.warn(err));
 }
@@ -45,13 +47,12 @@ function getPedidos()
           'Accept': 'application/json',
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + global.access_token,          
-        },
-        data: data
+        }
       };
 
     axios(config)
     .then(function (response) {
-        console.log(response.data)
+        console.log(response)        
     })
     .catch(function (error) {
         console.log('errorrrr')
