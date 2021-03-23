@@ -14,7 +14,7 @@ app.get('/home', (req, res) => { getToken.getToken(req, res, app) })
 
 app.get('/tokenCode', (req, res) => { getTokenCode.getTokenCode(req, res) })
 
-cron.schedule("*/30 * * * *", () => { console.log("Executando a tarefa a cada 5 minuto"); getPedidos()} );
+cron.schedule("*/1 * * * *", () => { console.log("Executando a tarefa a cada 5 minuto"); getPedidos()} );
 
 app.listen(process.env.PORT || 3030, () =>{
     console.log('App listening on port ' + (process.env.PORT || 3030));
