@@ -40,25 +40,19 @@ function getPedidos()
       }
       );
 
-    var config = {
-        method: 'post',
-        url: 'https://api.mercadolibre.com/users/me',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + global.access_token,          
-        }
-      };
-
-    const axios = require('axios')
-    
-    axios(config)
-    .then(function (response) {
-        console.log(response)        
-    })
-    .catch(function (error) {
-        console.log('errorrrr')
+    const axios = axios.create({
+        baseURL: `https://api.mercadolibre.com`,
+        timeout: 10000,
+        headers: { Authorization: `Bearer ` + global.access_token},
     });
+
+    axios.post('/users/me')
+    .then(function (response) {
+        console.log(response);        
+      })
+    .catch(function (error) {
+        console.log(error);
+      })
 }
 
 
