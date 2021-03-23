@@ -42,9 +42,8 @@ function getPedidos()
           headers: {
             'Authorization': 'Bearer ' + global.access_token,            
           },
-          null
+          data: data
         };
-        
       
         axios(config)
           .then(function (response) {
