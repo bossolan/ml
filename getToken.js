@@ -46,7 +46,7 @@ function getPedidos()
         headers: { Authorization: `Bearer ` + global.access_token},
     });
 
-    axios.post('/users/me')
+    axios.get('/users/me')
     .then(function (response) {
         console.log(response);        
       })
