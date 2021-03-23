@@ -17,12 +17,52 @@ function getToken(req, res){
 
     axios.post('https://api.mercadolibre.com/oauth/token', null, { params: data})
       .then(response => {
-            console.log(response.data)  
-            console.log(response.body)
-            console.log(response.query)    
-            console.log(response.access_token)    
+            global.access_token = response.data.access_token
+            global.user_id = response.data.user_id
+            global.refresh_token = response.data.refresh_token
       })
       .catch(err => console.warn(err));
+}
+
+function getPedidos()
+{
+    console.log('Importando pedidos: ' + global.access_token)
+
+    if(!global.access_token)
+        console.log('Sem Token, interrompendo processo...')
+
+    var data = JSON.stringify({
+        "from": { "postal_code": process.env.MELHOR_ENVIO_CEP_FROM },
+        "to": { "postal_code": cepCliente },
+        "products": produtos
+      }
+      );
+
+    var config = {
+        method: 'post',
+        url: 'https://api.mercadolibre.com/users/me',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + global.access_token,          
+        },
+        data: data
+      };
+
+    axios(config)
+    .then(function (response) {
+        console.log(response.data)
+    })
+    .catch(function (error) {
+        console.log('errorrrr')
+    });
+}
+
+
+module.exports = {
+    getToken: getToken,
+    getPedidos: getPedidos
+};
 
     /*const params = new URLSearchParams();
     params.append('grant_type', 'authorization_code');
@@ -73,14 +113,3 @@ function getToken(req, res){
 
     const x = 'https://auth.mercadolibre.com.ar/authorization?response_type=code&client_id=' + clienteID + '&redirect_uri=' + redirectURI
     */
-
-}
-
-
-module.exports = {
-    getToken: getToken
-};
-
-
-
- 
