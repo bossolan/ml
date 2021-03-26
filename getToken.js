@@ -1,3 +1,4 @@
+/******************************************* rotina para obter token do bancotoken *******************************/
 function getToken(req, res){
 
     console.log(req.query.code);
@@ -21,34 +22,38 @@ function getToken(req, res){
             global.user_id = response.data.user_id
             global.refresh_token = response.data.refresh_token
 
-            console.log('Token Obtido:' + response.data.access_token)
+            console.log('Token Obtido:' + response.data.access_token)            
+
+            setTimeout(function(){ refreshToken() }, 1000 * 60 * 5); 
+
       })
       .catch(err => console.warn(err));
 }
 
-function getPedidos()
-{
-    console.log('Importando pedidos: ' + global.access_token + ' - ' + global.user_id)
+function refreshToken(){
 
-    global.access_token = 'APP_USR-8909978435931711-032320-039469b4d7b4ea17f3db1994dad3b547-186585541'
-    global.user_id = '186585541'
+    const axios = require('axios')
 
-    if(!global.access_token)
-        console.log('Sem Token, interrompendo processo...')
+    const data = {
+        grant_type: 'refresh_token',
+        client_id: '8909978435931711',
+        client_secret: 'v6GbWGKASUGmarVRaHIMJ3WCRdjetfNZ',        
+        refresh_token: global.refresh_token
+    }
 
-    var axios = require('axios');
-    
-    axios.get( 
-      'https://api.mercadolibre.com/orders/search?seller=' + global.user_id,      
-      { headers: { Authorization: `Bearer ${global.access_token}` } }
-    ).then(res => {
-        console.log(res.data)
-    }).catch(console.log);      
+    axios.post('https://api.mercadolibre.com/oauth/token', null, { params: data})
+      .then(response => {
+            global.access_token = response.data.access_token
+            global.user_id = response.data.user_id
+            global.refresh_token = response.data.refresh_token
+
+            console.log('Token Refresh:' + response.data.access_token)
+      })
+      .catch(err => console.warn(err));
 }
 
 module.exports = {
-    getToken: getToken,
-    getPedidos: getPedidos
+    getToken: getToken
 };
 
     /*const params = new URLSearchParams();
@@ -100,3 +105,29 @@ module.exports = {
 
     const x = 'https://auth.mercadolibre.com.ar/authorization?response_type=code&client_id=' + clienteID + '&redirect_uri=' + redirectURI
     */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
