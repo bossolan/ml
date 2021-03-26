@@ -59,7 +59,7 @@ async function getDadosCidade(cep) {
         var axios = require('axios');
         const url = 'http://viacep.com.br/ws/' + cep + '/json/'
     
-        const res = await axios.get(url).catch()
+        const res = await axios.get(url).catch(console.log)
         if(!res)
             return undefined
 
@@ -124,7 +124,7 @@ async function gravaPedido(pedido)
     const bairro = await getBillingValue(pedido, 'NEIGHBORHOOD')
     let cep = await getBillingValue(pedido, 'ZIP_CODE') 
 
-    const dadosCidade = await getDadosCidade(cep).catch(console.log('Não conseguiu obter dados cidade:' + pedido.id + '-' + cep))
+    const dadosCidade = await getDadosCidade(cep).catch(err => console.log('Não conseguiu obter dados cidade:' + pedido.id + '-' + cep + err))
 
     if(!dadosCidade)
         return

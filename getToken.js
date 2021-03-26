@@ -48,6 +48,8 @@ function refreshToken(){
             global.refresh_token = response.data.refresh_token
 
             console.log('Token Refresh:' + response.data.access_token)
+
+            setTimeout(function(){ refreshToken() }, 1000 * 60 * 5); 
       })
       .catch(err => console.warn(err));
 }
