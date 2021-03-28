@@ -117,8 +117,8 @@ async function gravaPedido(pedido)
     const cnpjCPF = pedido.dataFat.billing_info.doc_number
 
     const ieRG = 'ISENTO'
-    const razaoSocial = await getBillingValue(pedido, 'FIRST_NAME')
-    const fantasia = await getBillingValue(pedido, 'FIRST_NAME')
+    const razaoSocial = await getBillingValue(pedido, 'FIRST_NAME') + await getBillingValue(pedido, 'LAST_NAME')
+    const fantasia = await getBillingValue(pedido, 'FIRST_NAME')  + await getBillingValue(pedido, 'LAST_NAME')
     const endereco = await getBillingValue(pedido, 'STREET_NAME') 
     const numero = await getBillingValue(pedido, 'STREET_NUMBER') 
     const bairro = await getBillingValue(pedido, 'NEIGHBORHOOD')
@@ -128,7 +128,7 @@ async function gravaPedido(pedido)
 
     if(!dadosCidade)
         return
-        
+
     if(!dadosCidade.ibge)
         return
     
@@ -137,7 +137,8 @@ async function gravaPedido(pedido)
     const cidade = dadosCidade.localidade
     const estado = dadosCidade.uf 
 
-    const telefone = pedido.buyer.phone.number
+    //const telefone = pedido.buyer.phone.number
+    const telefone = pedido.dataShip.receiver_address.receiver_phone
 
     const strSQL = `
 
@@ -226,7 +227,7 @@ async function getSTRSQLPedidoItens(item, i, freteI){
             @idPedido = @idPedido,
             @item = ${i + 1},
             @quantidade = ${q},
-            @valorTotal = ${valorTotal},
+            @valorTotal = ${valorTotal - freteI - outrasDespesasI},
             @freteI = ${freteI},
             @outrasDespesasI = ${outrasDespesasI},
             @codigoInternoManual = '${codigoInternoManual}'
@@ -236,7 +237,7 @@ async function getSTRSQLPedidoItens(item, i, freteI){
     return strSQL + `
     update PedidosdeVendaItens set idOriginal = id where idOriginal is null
 
-    exec sp_ML_Arredonda @idPedido, ${i + 1} 
+    exec sp_ML_Arredonda @idPedido = @idPedido, @item = ${i + 1} 
 
     `
 }
