@@ -117,11 +117,11 @@ async function gravaPedido(pedido)
     const cnpjCPF = pedido.dataFat.billing_info.doc_number
 
     const ieRG = 'ISENTO'
-    const razaoSocial = await getBillingValue(pedido, 'FIRST_NAME') + await getBillingValue(pedido, 'LAST_NAME')
-    const fantasia = await getBillingValue(pedido, 'LAST_NAME')
-    const endereco = await getBillingValue(pedido, 'STREET_NAME') 
+    const razaoSocial = (await getBillingValue(pedido, 'FIRST_NAME').toUpperCase() + ' ' + await getBillingValue(pedido, 'LAST_NAME').toUpperCase()).replace(`'`,`''`)
+    const fantasia = await getBillingValue(pedido, 'LAST_NAME').toUpperCase().replace(`'`,`''`)
+    const endereco = await getBillingValue(pedido, 'STREET_NAME').toUpperCase().replace(`'`,`''`)
     const numero = await getBillingValue(pedido, 'STREET_NUMBER') 
-    const bairro = await getBillingValue(pedido, 'NEIGHBORHOOD')
+    const bairro = await getBillingValue(pedido, 'NEIGHBORHOOD').toUpperCase().replace(`'`,`''`)
     let cep = await getBillingValue(pedido, 'ZIP_CODE') 
 
     const dadosCidade = await getDadosCidade(cep).catch(err => console.log('Não conseguiu obter dados cidade:' + pedido.id + '-' + cep + err))
