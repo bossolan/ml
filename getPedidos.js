@@ -19,7 +19,7 @@ function getPedidos()
     axios.get( 
       'https://api.mercadolibre.com/orders/search?seller=' + global.user_id + '&order.status=paid&sort=date_desc&order.date_closed.from=' + dataStr,      
       { headers: { Authorization: `Bearer ${global.access_token}` } }
-    ).then(res => {        
+    ).then(async res => {        
         res.data.results.map(async pedido => {
             console.log(pedido.id) 
             await gravaPedido(pedido).catch(error => console.log(error))                                 
