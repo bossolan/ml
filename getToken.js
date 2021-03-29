@@ -24,7 +24,7 @@ function getToken(req, res){
 
             console.log('Token Obtido:' + response.data.access_token)            
 
-            setTimeout(function(){ refreshToken() }, 1000 * 60 * 5); 
+            setTimeout(function(){ refreshToken() }, 1000 * 60 * 5 * 60); 
 
       })
       .catch(err => console.warn(err));
@@ -49,7 +49,7 @@ function refreshToken(){
 
             console.log('Token Refresh:' + response.data.access_token)
 
-            setTimeout(function(){ refreshToken() }, 1000 * 60 * 5); 
+            setTimeout(function(){ refreshToken() }, 1000 * 60 * 5 * 60); 
       })
       .catch(err => console.warn(err));
 }
