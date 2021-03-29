@@ -117,12 +117,17 @@ async function gravaPedido(pedido)
     const cnpjCPF = pedido.dataFat.billing_info.doc_number
 
     const ieRG = 'ISENTO'
-    const razaoSocial = (await getBillingValue(pedido, 'FIRST_NAME').toString().toUpperCase() + ' ' + await getBillingValue(pedido, 'LAST_NAME').toString().toUpperCase()).replace(`'`,`''`)
-    const fantasia = await getBillingValue(pedido, 'LAST_NAME').toString().toUpperCase().replace(`'`,`''`)
-    const endereco = await getBillingValue(pedido, 'STREET_NAME').toString().toUpperCase().replace(`'`,`''`)
-    const numero = await getBillingValue(pedido, 'STREET_NUMBER') 
-    const bairro = await getBillingValue(pedido, 'NEIGHBORHOOD').toString().toUpperCase().replace(`'`,`''`)
+    let razaoSocial = await getBillingValue(pedido, 'FIRST_NAME') + ' ' + await getBillingValue(pedido, 'LAST_NAME')
+    let fantasia = await getBillingValue(pedido, 'LAST_NAME')
+    let endereco = await getBillingValue(pedido, 'STREET_NAME')
+    let numero = await getBillingValue(pedido, 'STREET_NUMBER') 
+    let bairro = await getBillingValue(pedido, 'NEIGHBORHOOD')
     let cep = await getBillingValue(pedido, 'ZIP_CODE') 
+
+    razaoSocial = razaoSocial.toString().toUpperCase().replace(`'`,`''`)
+    fantasia = fantasia.toString().toUpperCase().replace(`'`,`''`)
+    endereco = endereco.toString().toUpperCase().replace(`'`,`''`)
+    bairro = bairro.toString().toUpperCase().replace(`'`,`''`)
 
     const dadosCidade = await getDadosCidade(cep).catch(err => console.log('Não conseguiu obter dados cidade:' + pedido.id + '-' + cep + err))
 
