@@ -118,7 +118,7 @@ async function gravaPedido(pedido)
 
     const ieRG = 'ISENTO'
     const razaoSocial = await getBillingValue(pedido, 'FIRST_NAME') + await getBillingValue(pedido, 'LAST_NAME')
-    const fantasia = await getBillingValue(pedido, 'FIRST_NAME')  + await getBillingValue(pedido, 'LAST_NAME')
+    const fantasia = await getBillingValue(pedido, 'LAST_NAME')
     const endereco = await getBillingValue(pedido, 'STREET_NAME') 
     const numero = await getBillingValue(pedido, 'STREET_NUMBER') 
     const bairro = await getBillingValue(pedido, 'NEIGHBORHOOD')
