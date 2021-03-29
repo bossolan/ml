@@ -191,9 +191,9 @@ async function gravaPedido(pedido)
     });
 
     console.log('Inserindo')
-    executeSQL(strSQL + strSQLPedidos).catch(err => {
+    await executeSQL(strSQL + strSQLPedidos).catch(err => {
         const fs = require('fs');
-        console.log('Erro SQL' + err)
+        console.log('Erro SQL' + err + strSQL + strSQLPedidos)
         fs.appendFile('message.txt', strSQL + strSQLPedidos, function (err) {})
     })
 }
