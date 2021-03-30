@@ -147,6 +147,8 @@ async function gravaPedido(pedido)
     //const telefone = pedido.buyer.phone.number
     const telefone = pedido.dataShip.receiver_address.receiver_phone
 
+    const numeroDoPedidoDoCliente = pedido.payments[0].id + (pedido.pack_id ? ' - #' + pedido.pack_id : '')
+
     const strSQL = `
 
     set xact_abort on
@@ -182,7 +184,7 @@ async function gravaPedido(pedido)
             @idPedido = @idPedido out,
             @idCliente = @idCliente,
             @codigoCliente = @codigoCliente,
-            @numeroDoPedidoDoCliente = '${'#' + pedido.payments[0].id}',
+            @numeroDoPedidoDoCliente = '${'#' + numeroDoPedidoDoCliente}',
             @obsViaSeparacao = '${pedido.id}',
             @totalProdutos =  ${totalProdutos},
             @totalNota = ${totalNota},
