@@ -6,8 +6,8 @@ function getPedidos()
 
     console.log('Importando pedidos: ' + global.access_token + ' - ' + global.user_id)
 
-    global.access_token = 'APP_USR-8909978435931711-033010-aa0703a6da6bae879dc5def71c38af9b-186585541'
-    global.user_id = '186585541'
+    //global.access_token = 'APP_USR-8909978435931711-033010-aa0703a6da6bae879dc5def71c38af9b-186585541'
+    //global.user_id = '186585541'
 
     var data = new Date();    
     data.setDate(data.getDate() - 1);
