@@ -6,8 +6,8 @@ function getPedidos()
 
     console.log('Importando pedidos: ' + global.access_token + ' - ' + global.user_id)
 
-    //global.access_token = 'APP_USR-8909978435931711-032617-3d5d53eb8b74ec32905033de43c4dd05-186585541'
-    //global.user_id = '186585541'
+    global.access_token = 'APP_USR-8909978435931711-033010-aa0703a6da6bae879dc5def71c38af9b-186585541'
+    global.user_id = '186585541'
 
     var data = new Date();    
     data.setDate(data.getDate() - 1);
@@ -20,10 +20,10 @@ function getPedidos()
       'https://api.mercadolibre.com/orders/search?seller=' + global.user_id + '&order.status=paid&sort=date_desc&order.date_closed.from=' + dataStr,      
       { headers: { Authorization: `Bearer ${global.access_token}` } }
     ).then(async res => {        
-        res.data.results.map(async pedido => {
+        for(const pedido of res.data.results) {
             console.log(pedido.id) 
-            await gravaPedido(pedido).catch(error => console.log(error))                                 
-        })
+            const ret = await gravaPedido(pedido).catch(error => console.log(error))                                
+        }
         console.log('Fim')        
     }).catch(console.log);      
 }

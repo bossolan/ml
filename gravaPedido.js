@@ -84,7 +84,7 @@ async function gravaPedido(pedido)
         return    
 
     if(await pedidoExistente(pedido.payments[0].id))
-        return
+        return    
     
     const dataFat = await obterDadosFaturamento(pedido).catch(error => console.log(error))
     const dataShip = await obterDadosShip(pedido).catch(error => console.log(error))
@@ -110,10 +110,12 @@ async function gravaPedido(pedido)
         totAux += el.unit_price * el.quantity
     });
 
-    const totalProdutos = pedido.total_amount + pedido.payments[0].shipping_cost - sale_fee - pedido.dataShip.shipping_option.list_cost
-    const totalNota = pedido.paid_amount
     const freteT = pedido.dataShip.shipping_option.list_cost - pedido.payments[0].shipping_cost
     const outrasDespesasT = sale_fee
+    const totalNota = pedido.paid_amount
+    const totalProdutos = totalNota - outrasDespesasT - freteT   
+    
+    
     const cnpjCPF = pedido.dataFat.billing_info.doc_number
 
     const ieRG = 'ISENTO'

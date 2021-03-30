@@ -17,9 +17,9 @@ app.get('/tokenCode', (req, res) => { getTokenCode.getTokenCode(req, res) })
 
 console.log(process.env.PORT)
 
-//getPedidos()
+getPedidos()
 
-setTimeout(function(){ getPedidos() }, 20000); 
+//setTimeout(function(){ getPedidos() }, 20000); 
 //cron.schedule("*/30 * * * *", () => { console.log("Executando a tarefa a cada 30 minuto"); getPedidos()} );
 
 app.listen(process.env.PORT || 3030, () =>{
