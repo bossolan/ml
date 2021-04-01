@@ -37,14 +37,84 @@ async function obterDadosShip(pedido)
     return res.data      
 }
 
-async function pedidoExistente(idPagamento)
+async function pedidoExistente(pedido)
 {
-    const res = await executeSQL(`select * from PedidosDeVenda where numeroDoPedidoDoCliente like '%#${idPagamento}%'`).catch(console.log)
+    const idPagamento = pedido.payments[0].id
+    const packID = pedido.pack_id ? pedido.pack_id : '@@@#$@#@@$@#'
+    const res = await executeSQL(`select id, numeroDoPedidoDoCliente, obsViaSeparacao from PedidosDeVenda where dataCotacao > getdate() - 60 and (convert(varchar(max),obsViaSeparacao) like '%${packID}%' or convert(varchar(max),obsViaSeparacao) like '%${pedido.id}%')`).catch(console.log)
     
     if(res.recordset[0])
-        return true
+    {
+        const obsViaSeparacao = res.recordset[0].obsViaSeparacao
+        const idPedidoSistema = res.recordset[0].id
+        const numeroDoPedidoDoCliente = res.recordset[0].numeroDoPedidoDoCliente
+
+        if(obsViaSeparacao.toString().includes(pedido.id))
+            return true
+        else   
+        {
+            adicionaItens(idPedidoSistema, numeroDoPedidoDoCliente, pedido)
+            return true
+        }
+    }
     else
         return false
+}
+
+async function adicionaItens(idPedidoSistema, numeroDoPedidoDoCliente, pedido)
+{
+    /************ ATUALIZA DATAFAT E SHIP **************/
+    const dataFat = await obterDadosFaturamento(pedido).catch(error => console.log(error))
+    const dataShip = await obterDadosShip(pedido).catch(error => console.log(error))    
+
+    pedido.dataFat = dataFat
+    pedido.dataShip = dataShip
+
+    /************ GRAVA LOGS ************************/
+    fs.writeFileSync('./pedido' + pedido.id + '--' + pedido.payments[0].id + '.txt', JSON.stringify(pedido, null, 2) , 'utf-8');
+
+    console.log('Gravando pedido: ' + pedido.id)
+
+    const aux = numeroDoPedidoDoCliente.includes(pedido.payments[0].id) ? '' : ' #' + pedido.payments[0].id
+
+    /************ MONTA INSERTS ***********************/
+    let strSQLPedidos = ` 
+    set xact_abort on
+
+    declare @idPedido numeric
+    select @idPedido = id from PedidosDeVenda where id = ${idPedidoSistema} and status = 'P'
+
+    if(@idPedido is null)
+        return
+
+    update PedidosDeVenda set obsViaSeparacao = convert(varchar(max),obsViaSeparacao) + ' ${pedido.id}', numeroDoPedidoDoCliente = numeroDoPedidoDoCliente + ' ${numeroDoPedidoDoCliente}'
+    where id = @idPedido
+    
+    update PedidosDeVendaItens set item = item * 1000 where idPedido = @idPedido
+    `
+
+    const freteT = pedido.dataShip.shipping_option.list_cost - pedido.dataShip.shipping_option.cost
+
+    let totAux = 0    
+    pedido.order_items.forEach(el => { totAux += el.unit_price * el.quantity });
+
+    await pedido.order_items.forEach(async (el,i) => {
+        const freteI = freteT / totAux * (el.unit_price * el.quantity)
+        strSQLPedidos += await getSTRSQLPedidoItens(el, i, freteI)    
+    });
+
+    const strSQLItenizar = `
+    UPDATE dbo.PedidosDeVendaItens SET item = itemx FROM ( 
+        SELECT id, ROW_NUMBER() OVER (ORDER BY id) itemx FROM dbo.PedidosDeVendaItens  WHERE idPedido = @idPedido
+    ) a WHERE a.id = pedidosdevendaitens.id
+    `
+
+    console.log('Inserindo')
+    await executeSQL(strSQLPedidos + strSQLItenizar).catch(err => {
+        const fs = require('fs');
+        console.log('Erro SQL' + err + strSQLPedidos)
+        fs.appendFile('message.txt', strSQLPedidos, function (err) {})
+    })
 }
 
 async function getDadosCidade(cep) {
@@ -81,18 +151,20 @@ async function getBillingValue(pedido, type)
 async function gravaPedido(pedido)
 {
     if(pedido.status !== 'paid')
-        return    
+        return            
 
-    if(await pedidoExistente(pedido.payments[0].id))
-        return    
+    if(await pedidoExistente(pedido))
+        return
     
     const dataFat = await obterDadosFaturamento(pedido).catch(error => console.log(error))
-    const dataShip = await obterDadosShip(pedido).catch(error => console.log(error))
-
-    console.log('Gravando pedido: ' + pedido.id)
+    const dataShip = await obterDadosShip(pedido).catch(error => console.log(error))    
 
     pedido.dataFat = dataFat
     pedido.dataShip = dataShip
+
+    fs.writeFileSync('./pedido' + pedido.id + '--' + pedido.payments[0].id + '.txt', JSON.stringify(pedido, null, 2) , 'utf-8');
+
+    console.log('Gravando pedido: ' + pedido.id)
 
     if(!pedido.dataShip)
     {
@@ -110,48 +182,65 @@ async function gravaPedido(pedido)
         totAux += el.unit_price * el.quantity
     });
 
-    const freteT = pedido.dataShip.shipping_option.list_cost - pedido.payments[0].shipping_cost
+    const freteT = pedido.dataShip.shipping_option.list_cost - pedido.dataShip.shipping_option.cost
     const outrasDespesasT = sale_fee
     const totalNota = pedido.paid_amount
-    const totalProdutos = totalNota - outrasDespesasT - freteT   
-    
+    const totalProdutos = totalNota - outrasDespesasT - freteT  
     
     const cnpjCPF = pedido.dataFat.billing_info.doc_number
 
     const ieRG = 'ISENTO'
     let razaoSocial = await getBillingValue(pedido, 'FIRST_NAME') + ' ' + await getBillingValue(pedido, 'LAST_NAME')
-    let fantasia = await getBillingValue(pedido, 'LAST_NAME')
+    let razaoSocial2 =  await getBillingValue(pedido, 'BUSINESS_NAME')
+    let fantasia = pedido.buyer.nickname
     let endereco = await getBillingValue(pedido, 'STREET_NAME')
     let numero = await getBillingValue(pedido, 'STREET_NUMBER') 
     let bairro = await getBillingValue(pedido, 'NEIGHBORHOOD')
-    let cep = await getBillingValue(pedido, 'ZIP_CODE') 
+    let cep = await getBillingValue(pedido, 'ZIP_CODE')
+    
+    if(!razaoSocial || razaoSocial.toString().trim() == '')
+        razaoSocial = razaoSocial2
 
     razaoSocial = razaoSocial.toString().toUpperCase().replace(`'`,`''`)
     fantasia = fantasia.toString().toUpperCase().replace(`'`,`''`)
+    fantasia = fantasia.toString().toUpperCase().replace(`'`,`''`)
     endereco = endereco.toString().toUpperCase().replace(`'`,`''`)
-    bairro = bairro.toString().toUpperCase().replace(`'`,`''`)
+    bairro = bairro.toString().toUpperCase().replace(`'`,`''`)    
 
     const dadosCidade = await getDadosCidade(cep).catch(err => console.log('Não conseguiu obter dados cidade:' + pedido.id + '-' + cep + err))
 
-    if(!dadosCidade)
-        return
+    let idCidade = 3510401
+    let cidade = 'CAPIVARI'
+    let estado = 'SP'
 
-    if(!dadosCidade.ibge)
-        return
-    
-    cep = dadosCidade.cep
-    const idCidade = dadosCidade.ibge
-    const cidade = dadosCidade.localidade
-    const estado = dadosCidade.uf 
+    if(!dadosCidade)
+    {
+        console.log('Sem dados cidade' + cep)    
+    }
+    else if(!dadosCidade.ibge)
+    {
+        console.log('Sem dados IBGE' + cep)        
+    } 
+    else
+    {    
+        cep = dadosCidade.cep
+        idCidade = dadosCidade.ibge
+        cidade = dadosCidade.localidade
+        estado = dadosCidade.uf 
+    }
+
+    cidade = cidade.toString().toUpperCase().replace(`'`,`''`)
 
     //const telefone = pedido.buyer.phone.number
     const telefone = pedido.dataShip.receiver_address.receiver_phone
 
-    const numeroDoPedidoDoCliente = pedido.payments[0].id + (pedido.pack_id ? ' - #' + pedido.pack_id : '')
+    const numeroDoPedidoDoCliente = pedido.payments.reduce((acc, v) => !acc ? '#' + v.id : acc + ' ' + '#' + v.id, '')
 
-    const strSQL = `
+    const numeroCarrinho = pedido.pack_id
 
-    set xact_abort on
+    const strSQL = `  
+    
+    set xact_abort ON
 
     if(exists(select * from PedidosDeVenda where numeroDoPedidoDoCliente like '%#${pedido.payments[0].id}%'))
         return
@@ -184,8 +273,8 @@ async function gravaPedido(pedido)
             @idPedido = @idPedido out,
             @idCliente = @idCliente,
             @codigoCliente = @codigoCliente,
-            @numeroDoPedidoDoCliente = '${'#' + numeroDoPedidoDoCliente}',
-            @obsViaSeparacao = '${pedido.id}',
+            @numeroDoPedidoDoCliente = '${numeroDoPedidoDoCliente}',
+            @obsViaSeparacao = '${pedido.id + (pedido.pack_id ? ' - #' + pedido.pack_id : '')}',
             @totalProdutos =  ${totalProdutos},
             @totalNota = ${totalNota},
             @freteT = ${freteT},
@@ -199,8 +288,14 @@ async function gravaPedido(pedido)
         strSQLPedidos += await getSTRSQLPedidoItens(el, i, freteI)    
     });
 
+    const strSQLItenizar = `
+    UPDATE dbo.PedidosDeVendaItens SET item = itemx FROM ( 
+        SELECT id, ROW_NUMBER() OVER (ORDER BY id) itemx FROM dbo.PedidosDeVendaItens  WHERE idPedido = @idPedido
+    ) a WHERE a.id = pedidosdevendaitens.id
+    `
+
     console.log('Inserindo')
-    await executeSQL(strSQL + strSQLPedidos).catch(err => {
+    await executeSQL(strSQL + strSQLPedidos + strSQLItenizar).catch(err => {
         const fs = require('fs');
         console.log('Erro SQL' + err + strSQL + strSQLPedidos)
         fs.appendFile('message.txt', strSQL + strSQLPedidos, function (err) {})

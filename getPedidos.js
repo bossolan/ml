@@ -4,10 +4,7 @@ function getPedidos()
 {    
     var axios = require('axios');
 
-    console.log('Importando pedidos: ' + global.access_token + ' - ' + global.user_id)
-
-    //global.access_token = 'APP_USR-8909978435931711-033010-aa0703a6da6bae879dc5def71c38af9b-186585541'
-    //global.user_id = '186585541'
+    console.log('Importando pedidos: ' + global.access_token + ' - ' + global.user_id)    
 
     var data = new Date();    
     data.setDate(data.getDate() - 1);
@@ -28,6 +25,31 @@ function getPedidos()
     }).catch(console.log);      
 }
 
+function getPedido(pedido)
+{    
+    var axios = require('axios');
+
+    console.log('Importando pedidos: ' + global.access_token + ' - ' + global.user_id)
+
+    var data = new Date();    
+    data.setDate(data.getDate() - 1);
+    var dataStr = data.toISOString().slice(0, -1) + '-00:00'
+
+    if(!global.access_token)
+        console.log('Sem Token, interrompendo processo...')    
+    
+    axios.get( 
+      `https://api.mercadolibre.com/orders/${pedido}`,      
+      { headers: { Authorization: `Bearer ${global.access_token}` } }
+    ).then(async res => {        
+            console.log(res.data.id) 
+            const ret = await gravaPedido(res.data).catch(error => console.log(error))                                
+            console.log('Fim')        
+    }).catch(console.log);      
+}
+
+
 module.exports = {
-    getPedidos: getPedidos,    
+    getPedidos: getPedidos, 
+    getPedido: getPedido   
 };
