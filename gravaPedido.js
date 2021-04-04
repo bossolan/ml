@@ -87,20 +87,22 @@ async function adicionaItens(idPedidoSistema, numeroDoPedidoDoCliente, pedido)
     if(@idPedido is null)
         return
 
-    update PedidosDeVenda set obsViaSeparacao = convert(varchar(max),obsViaSeparacao) + ' ${pedido.id}', numeroDoPedidoDoCliente = numeroDoPedidoDoCliente + ' ${numeroDoPedidoDoCliente}'
+    update PedidosDeVenda set obsViaSeparacao = convert(varchar(max),obsViaSeparacao) + ' ${pedido.id}', numeroDoPedidoDoCliente = numeroDoPedidoDoCliente + '${aux}'
     where id = @idPedido
     
     update PedidosDeVendaItens set item = item * 1000 where idPedido = @idPedido
     `
 
-    const freteT = pedido.dataShip.shipping_option.list_cost - pedido.dataShip.shipping_option.cost
+    const freteT = pedido.dataShip.shipping_option.list_cost 
+    const freteAux = pedido.dataShip.shipping_option.cost
 
     let totAux = 0    
     pedido.order_items.forEach(el => { totAux += el.unit_price * el.quantity });
 
     await pedido.order_items.forEach(async (el,i) => {
-        const freteI = freteT / totAux * (el.unit_price * el.quantity)
-        strSQLPedidos += await getSTRSQLPedidoItens(el, i, freteI)    
+        const freteI = freteT / totAux * (el.unit_price * el.quantity)        
+        const freteIAux = freteAux / totAux * (el.unit_price * el.quantity)
+        strSQLPedidos += await getSTRSQLPedidoItens(el, i, freteI, freteIAux)    
     });
 
     const strSQLItenizar = `
@@ -182,10 +184,12 @@ async function gravaPedido(pedido)
         totAux += el.unit_price * el.quantity
     });
 
-    const freteT = pedido.dataShip.shipping_option.list_cost - pedido.dataShip.shipping_option.cost
+    const freteT = pedido.dataShip.shipping_option.list_cost 
+    const freteAux = pedido.dataShip.shipping_option.cost
+
     const outrasDespesasT = sale_fee
-    const totalNota = pedido.paid_amount
-    const totalProdutos = totalNota - outrasDespesasT - freteT  
+    const totalNota = pedido.total_amount + freteAux
+    const totalProdutos = totalNota - outrasDespesasT - freteT
     
     const cnpjCPF = pedido.dataFat.billing_info.doc_number
 
@@ -285,7 +289,8 @@ async function gravaPedido(pedido)
 
     await pedido.order_items.forEach(async (el,i) => {
         const freteI = freteT / totAux * (el.unit_price * el.quantity)
-        strSQLPedidos += await getSTRSQLPedidoItens(el, i, freteI)    
+        const freteIAux = freteAux / totAux * (el.unit_price * el.quantity)
+        strSQLPedidos += await getSTRSQLPedidoItens(el, i, freteI, freteIAux)    
     });
 
     const strSQLItenizar = `
@@ -302,7 +307,7 @@ async function gravaPedido(pedido)
     })
 }
 
-async function getSTRSQLPedidoItens(item, i, freteI){
+async function getSTRSQLPedidoItens(item, i, freteI, freteAux){
 
     let quantidade = item.quantity
     const valorUnitario = item.unit_price 
@@ -331,7 +336,7 @@ async function getSTRSQLPedidoItens(item, i, freteI){
             @idPedido = @idPedido,
             @item = ${i + 1},
             @quantidade = ${q},
-            @valorTotal = ${valorTotal - freteI - outrasDespesasI},
+            @valorTotal = ${valorTotal + freteAux - freteI - outrasDespesasI},
             @freteI = ${freteI},
             @outrasDespesasI = ${outrasDespesasI},
             @codigoInternoManual = '${codigoInternoManual}'
