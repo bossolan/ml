@@ -240,7 +240,7 @@ async function gravaPedido(pedido)
 
     const numeroDoPedidoDoCliente = pedido.payments.reduce((acc, v) => !acc ? '#' + v.id : acc + ' ' + '#' + v.id, '')
 
-    const tituloAnuncio = !pedido.payments[0].reason ? '' : !pedido.payments[0].reason
+    const tituloAnuncio = !pedido.payments[0].reason ? '' : pedido.payments[0].reason
 
     const strSQL = `  
     

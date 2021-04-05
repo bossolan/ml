@@ -15,9 +15,8 @@ app.get('/home', (req, res) => { getToken.getToken(req, res, app) })
 
 app.get('/tokenCode', (req, res) => { getTokenCode.getTokenCode(req, res) })
 
-console.log(process.env.PORT)
-
-//global.access_token = 'APP_USR-8909978435931711-040117-9874d6e01cb50312b0663edbb68695c4-186585541'
+//console.log(process.env.PORT)
+//global.access_token = 'APP_USR-8909978435931711-040513-e4fc5a90926c8bf4f9bfd3a472234791-186585541'
 //global.user_id = '186585541'
 
 /*getPedido('4460303318')
@@ -31,6 +30,7 @@ setTimeout(function(){ getPedido('4460307034') }, 21000);
 */
 //getPedido('4460307034')
 //setTimeout(function(){ getPedidos() }, 25000); 
+//getPedidos()
 
 cron.schedule("*/30 * * * *", () => { console.log("Executando a tarefa a cada 30 minuto"); getPedidos()} );
 
