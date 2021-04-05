@@ -240,7 +240,7 @@ async function gravaPedido(pedido)
 
     const numeroDoPedidoDoCliente = pedido.payments.reduce((acc, v) => !acc ? '#' + v.id : acc + ' ' + '#' + v.id, '')
 
-    const numeroCarrinho = pedido.pack_id
+    const tituloAnuncio = !pedido.payments[0].reason ? '' : !pedido.payments[0].reason
 
     const strSQL = `  
     
@@ -278,7 +278,7 @@ async function gravaPedido(pedido)
             @idCliente = @idCliente,
             @codigoCliente = @codigoCliente,
             @numeroDoPedidoDoCliente = '${numeroDoPedidoDoCliente}',
-            @obsViaSeparacao = '${pedido.id + (pedido.pack_id ? ' - #' + pedido.pack_id : '')}',
+            @obsViaSeparacao = '${pedido.id + (pedido.pack_id ? ' - #' + pedido.pack_id : '') + ' - ' + tituloAnuncio}',
             @totalProdutos =  ${totalProdutos},
             @totalNota = ${totalNota},
             @freteT = ${freteT},
