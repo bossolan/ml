@@ -30,6 +30,7 @@ function getToken(req, res){
             {
               global.inicializado = true
               setTimeout(function(){ refreshToken() }, 1000 * 60 * 5 * 60); 
+              cron.schedule("*/30 * * * *", () => { console.log("Executando a tarefa a cada 30 minuto"); getPedidos()} );
             }
 
             getPedidos();

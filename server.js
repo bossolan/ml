@@ -32,7 +32,7 @@ setTimeout(function(){ getPedido('4460307034') }, 21000);
 //setTimeout(function(){ getPedidos() }, 25000); 
 //getPedidos()
 
-cron.schedule("*/30 * * * *", () => { console.log("Executando a tarefa a cada 30 minuto"); getPedidos()} );
+
 
 app.listen(process.env.PORT || 3030, () =>{
     console.log('App listening on port ' + (process.env.PORT || 3030));
