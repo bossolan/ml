@@ -16,7 +16,7 @@ app.get('/home', (req, res) => { getToken.getToken(req, res, app) })
 app.get('/tokenCode', (req, res) => { getTokenCode.getTokenCode(req, res) })
 
 //console.log(process.env.PORT)
-//global.access_token = 'APP_USR-8909978435931711-040513-e4fc5a90926c8bf4f9bfd3a472234791-186585541'
+//global.access_token = 'APP_USR-8909978435931711-040620-111e06694691583e77567e112b2404be-186585541'
 //global.user_id = '186585541'
 
 /*getPedido('4460303318')

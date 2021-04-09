@@ -1,3 +1,5 @@
+const getPedidos = require('./getPedidos');
+
 /******************************************* rotina para obter token do bancotoken *******************************/
 function getToken(req, res){
 
@@ -24,7 +26,13 @@ function getToken(req, res){
 
             console.log('Token Obtido:' + response.data.access_token)            
 
-            setTimeout(function(){ refreshToken() }, 1000 * 60 * 5 * 60); 
+            if(!global.inicializado)
+            {
+              global.inicializado = true
+              setTimeout(function(){ refreshToken() }, 1000 * 60 * 5 * 60); 
+            }
+
+            getPedidos();
 
       })
       .catch(err => console.warn(err));
@@ -51,7 +59,10 @@ function refreshToken(){
 
             setTimeout(function(){ refreshToken() }, 1000 * 60 * 5 * 60); 
       })
-      .catch(err => console.warn(err));
+      .catch(err => {
+          console.warn(err)
+          setTimeout(function(){ refreshToken() }, 1000 * 60 * 5); 
+      });
 }
 
 module.exports = {

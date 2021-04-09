@@ -43,9 +43,9 @@ function getPedido(pedido)
       { headers: { Authorization: `Bearer ${global.access_token}` } }
     ).then(async res => {        
             console.log(res.data.id) 
-            const ret = await gravaPedido(res.data).catch(error => console.log(error))                                
+            const ret = await gravaPedido(res.data).catch(error => console.log(error))
             console.log('Fim')        
-    }).catch(console.log);      
+    }).catch(console.log);          
 }
 
 
