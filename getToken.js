@@ -1,4 +1,4 @@
-const getPedidos = require('./getPedidos');
+const { getPedidos } = require("./getPedidos");
 
 /******************************************* rotina para obter token do bancotoken *******************************/
 function getToken(req, res){
