@@ -22,18 +22,22 @@ function getToken(req, res){
       .then(response => {
             global.access_token = response.data.access_token
             global.user_id = response.data.user_id
-            global.refresh_token = response.data.refresh_token
+            global.refresh_token = response.data.refresh_token                        
 
             console.log('Token Obtido:' + response.data.access_token)            
 
             if(!global.inicializado)
             {
               global.inicializado = true
-              setTimeout(function(){ refreshToken() }, 1000 * 60 * 5 * 60); 
-              cron.schedule("*/30 * * * *", () => { console.log("Executando a tarefa a cada 30 minuto"); getPedidos()} );
+              setTimeout(function(){ refreshToken() }, 1000 * 60 * 5 * 60);               
             }
 
-            getPedidos();
+            if(!global.dataUltimoGetPedidos)
+            {
+              global.dataUltimoGetPedidos = new Date()
+              setTimeout(function(){ global.dataUltimoGetPedidos = undefined }, 1000 * 60 * 5);               
+              getPedidos();              
+            }
 
       })
       .catch(err => console.warn(err));
