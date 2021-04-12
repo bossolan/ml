@@ -8,7 +8,7 @@ function getPedidos()
 
     var data = new Date();    
     data.setDate(data.getDate() - 1);
-    var dataStr = data.toISOString().slice(0, -1) + '-00:00'
+    var dataStr = data.toISOString().slice(0, -3) + '-00:00'
 
     if(!global.access_token)
         console.log('Sem Token, interrompendo processo...')    
