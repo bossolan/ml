@@ -6,15 +6,21 @@ function getPedidos()
 
     console.log('Importando pedidos: ' + global.access_token + ' - ' + global.user_id)    
 
+    let auxDias = 1
+
     var data = new Date();    
-    data.setDate(data.getDate() - 3);
+    data.setDate(data.getDate() - auxDias);
     var dataStr = data.toISOString().slice(0, -1) + '-00:00'
+
+    /*var data2 = new Date()
+    data2.setDate(data2.getDate() - (auxDias -1));
+    var dataStr2 = data2.toISOString().slice(0, -1) + '-00:00'*/
 
     if(!global.access_token)
         console.log('Sem Token, interrompendo processo...')    
     
     axios.get( 
-      'https://api.mercadolibre.com/orders/search?seller=' + global.user_id + '&order.status=paid&sort=date_desc&order.date_closed.from=' + dataStr,      
+      'https://api.mercadolibre.com/orders/search?seller=' + global.user_id + '&order.status=paid&sort=date_desc&order.date_closed.from=' + dataStr /*+ '&order.date_closed.to=' + dataStr2,      */,
       { headers: { Authorization: `Bearer ${global.access_token}` } }
     ).then(async res => {        
         for(const pedido of res.data.results) {
