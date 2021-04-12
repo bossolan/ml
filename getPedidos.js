@@ -7,8 +7,8 @@ function getPedidos()
     console.log('Importando pedidos: ' + global.access_token + ' - ' + global.user_id)    
 
     var data = new Date();    
-    data.setDate(data.getDate() - 1);
-    var dataStr = data.toISOString().slice(0, -3) + '-00:00'
+    data.setDate(data.getDate() - 3);
+    var dataStr = data.toISOString().slice(0, -1) + '-00:00'
 
     if(!global.access_token)
         console.log('Sem Token, interrompendo processo...')    
