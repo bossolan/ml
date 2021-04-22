@@ -3,21 +3,20 @@ const express = require('express');
 const cors = require('cors');
 const { Console } = require('console');
 const bodyParser = require('body-parser');
-const getToken = require('./getToken');
+const {getToken, refreshToken} = require('./getToken');
 const { getPedidos, getPedido } = require("./getPedidos");
+const { setP, getP } = require("./parametros");
 
 const app = express();
 
 app.use(bodyParser.json());
 app.use(cors());
 
-app.get('/home', (req, res) => { getToken.getToken(req, res, app) })
-
-app.get('/tokenCode', (req, res) => { getTokenCode.getTokenCode(req, res) })
+app.get('/home', (req, res) => { getToken(req, res, app) })
 
 //console.log(process.env.PORT)
-//global.access_token = 'APP_USR-8909978435931711-041213-73c3cf981c5730b46736fb78d3aec764-186585541'
-//global.user_id = '186585541'
+//setP('ml_access_token','APP_USR-8909978435931711-042211-17452b135256d1cce9809c4cb6ab4d73-186585541')
+//setP('ml_user_id','186585541')
 
 /*getPedido('4460303318')
 setTimeout(function(){ getPedido('4463348265') }, 3000); 
@@ -32,7 +31,8 @@ setTimeout(function(){ getPedido('4460307034') }, 21000);
 //setTimeout(function(){ getPedidos() }, 25000); 
 //getPedidos()
 
-cron.schedule("*/30 * * * *", () => { console.log("Executando a tarefa a cada 30 minuto"); getPedidos()} );
+cron.schedule("*/25 * * * *", () => { console.log("Executando a tarefa a cada 25 minutos"); getPedidos()} );
+cron.schedule("0 */3 * * *", () => { console.log("Executando a tarefa a 3 horas"); refreshToken()} );
 
 app.listen(process.env.PORT || 3030, () =>{
     console.log('App listening on port ' + (process.env.PORT || 3030));

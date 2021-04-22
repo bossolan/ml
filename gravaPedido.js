@@ -2,6 +2,7 @@ const { Console } = require('console');
 const { executeSQL } = require('./bancoDeDados');
 
 var fs = require('fs');
+const { getP } = require('./parametros');
 
 var ceps = []
 
@@ -12,7 +13,7 @@ async function obterDadosFaturamento(pedido)
 
     const res = await axios.get( 
         url,      
-        { headers: { Authorization: `Bearer ${global.access_token}` } }
+        { headers: { Authorization: `Bearer ${getP('ml_access_token')}` } }
       ).catch(res => console.log(res.data))
 
     if(!res)
@@ -28,7 +29,7 @@ async function obterDadosShip(pedido)
 
     const res = await axios.get( 
         url,      
-        { headers: { Authorization: `Bearer ${global.access_token}` } }
+        { headers: { Authorization: `Bearer ${getP('ml_access_token')}` } }
       ).catch(res => console.log(res.data))
 
     if(!res)

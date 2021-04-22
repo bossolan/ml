@@ -24,7 +24,7 @@ async function executeSQL(strSQL){
     var fs = require('fs');
     fs.writeFileSync('./requests.txt', strSQL , 'utf-8');
 
-    return await request.query(strSQL);    
+    return await request.query(strSQL);
 }
 
 module.exports = {
