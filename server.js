@@ -29,7 +29,9 @@ setTimeout(function(){ getPedido('4460307034') }, 21000);
 */
 //getPedido('4460307034')
 //setTimeout(function(){ getPedidos() }, 25000); 
-//getPedidos()
+//getPedidos(1)
+
+getPedido('4515188853')
 
 cron.schedule("*/10 * * * *", () => { console.log("Executando a tarefa a cada 25 minutos"); getPedidos()} );
 cron.schedule("0 */2 * * *", () => { console.log("Executando a tarefa a 3 horas"); refreshToken()} );

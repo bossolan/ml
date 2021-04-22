@@ -44,7 +44,7 @@ async function getPedido(pedido)
 {    
     var axios = require('axios');
 
-    const acess_token = await getP('ml_access_token')
+    const access_token = await getP('ml_access_token')
     const user_id = await getP('ml_user_id')
 
     console.log('Importando pedidos: ' + access_token + ' - ' + user_id)

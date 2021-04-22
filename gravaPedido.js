@@ -6,54 +6,56 @@ const { getP } = require('./parametros');
 
 var ceps = []
 
-async function obterDadosFaturamento(pedido)
-{
+async function obterDadosFaturamento(pedido) {
     var axios = require('axios');
     const url = `https://api.mercadolibre.com/orders/${pedido.id}/billing_info`
 
-    const res = await axios.get( 
-        url,      
-        { headers: { Authorization: `Bearer ${getP('ml_access_token')}` } }
-      ).catch(res => console.log(res.data))
+    const res = await axios.get(
+        url,
+        { headers: { Authorization: `Bearer ${ await getP('ml_access_token')}` } }
+    ).catch(res => console.log(res.data))
 
-    if(!res)
+    if (!res)
         return undefined
 
     return res.data
 }
 
-async function obterDadosShip(pedido)
-{
+async function obterDadosShip(pedido) {
     var axios = require('axios');
     const url = `https://api.mercadolibre.com/orders/${pedido.id}/shipments`
 
-    const res = await axios.get( 
-        url,      
-        { headers: { Authorization: `Bearer ${getP('ml_access_token')}` } }
-      ).catch(res => console.log(res.data))
+    try {
+        const res = await axios.get(
+            url,
+            { headers: { Authorization: `Bearer ${await getP('ml_access_token')}` } }
+        )
 
-    if(!res)
-        return undefined
+        if (!res)
+            return undefined
 
-    return res.data      
+        return res.data
+    }
+    catch (err) {
+        console.log(err)
+    }
+    
+    return undefined    
 }
 
-async function pedidoExistente(pedido)
-{
+async function pedidoExistente(pedido) {
     const idPagamento = pedido.payments[0].id
     const packID = pedido.pack_id ? pedido.pack_id : '@@@#$@#@@$@#'
     const res = await executeSQL(`select id, numeroDoPedidoDoCliente, obsViaSeparacao from PedidosDeVenda where dataCotacao > getdate() - 60 and (convert(varchar(max),obsViaSeparacao) like '%${packID}%' or convert(varchar(max),obsViaSeparacao) like '%${pedido.id}%')`).catch(console.log)
-    
-    if(res.recordset[0])
-    {
+
+    if (res.recordset[0]) {
         const obsViaSeparacao = res.recordset[0].obsViaSeparacao
         const idPedidoSistema = res.recordset[0].id
         const numeroDoPedidoDoCliente = res.recordset[0].numeroDoPedidoDoCliente
 
-        if(obsViaSeparacao.toString().includes(pedido.id))
+        if (obsViaSeparacao.toString().includes(pedido.id))
             return true
-        else   
-        {
+        else {
             adicionaItens(idPedidoSistema, numeroDoPedidoDoCliente, pedido)
             return true
         }
@@ -62,17 +64,16 @@ async function pedidoExistente(pedido)
         return false
 }
 
-async function adicionaItens(idPedidoSistema, numeroDoPedidoDoCliente, pedido)
-{
+async function adicionaItens(idPedidoSistema, numeroDoPedidoDoCliente, pedido) {
     /************ ATUALIZA DATAFAT E SHIP **************/
     const dataFat = await obterDadosFaturamento(pedido).catch(error => console.log(error))
-    const dataShip = await obterDadosShip(pedido).catch(error => console.log(error))    
+    const dataShip = await obterDadosShip(pedido).catch(error => console.log(error))
 
     pedido.dataFat = dataFat
     pedido.dataShip = dataShip
 
     /************ GRAVA LOGS ************************/
-    fs.writeFileSync('./pedido' + pedido.id + '--' + pedido.payments[0].id + '.txt', JSON.stringify(pedido, null, 2) , 'utf-8');
+    fs.writeFileSync('./pedido' + pedido.id + '--' + pedido.payments[0].id + '.txt', JSON.stringify(pedido, null, 2), 'utf-8');
 
     console.log('Gravando pedido: ' + pedido.id)
 
@@ -94,16 +95,16 @@ async function adicionaItens(idPedidoSistema, numeroDoPedidoDoCliente, pedido)
     update PedidosDeVendaItens set item = item * 1000 where idPedido = @idPedido
     `
 
-    const freteT = pedido.dataShip.shipping_option.list_cost 
+    const freteT = pedido.dataShip.shipping_option.list_cost
     const freteAux = pedido.dataShip.shipping_option.cost
 
-    let totAux = 0    
+    let totAux = 0
     pedido.order_items.forEach(el => { totAux += el.unit_price * el.quantity });
 
-    await pedido.order_items.forEach(async (el,i) => {
-        const freteI = freteT / totAux * (el.unit_price * el.quantity)        
+    await pedido.order_items.forEach(async (el, i) => {
+        const freteI = freteT / totAux * (el.unit_price * el.quantity)
         const freteIAux = freteAux / totAux * (el.unit_price * el.quantity)
-        strSQLPedidos += await getSTRSQLPedidoItens(el, i, freteI, freteIAux)    
+        strSQLPedidos += await getSTRSQLPedidoItens(el, i, freteI, freteIAux)
     });
 
     const strSQLItenizar = `
@@ -116,7 +117,7 @@ async function adicionaItens(idPedidoSistema, numeroDoPedidoDoCliente, pedido)
     await executeSQL(strSQLPedidos + strSQLItenizar).catch(err => {
         const fs = require('fs');
         console.log('Erro SQL' + err + strSQLPedidos)
-        fs.appendFile('message.txt', strSQLPedidos, function (err) {})
+        fs.appendFile('message.txt', strSQLPedidos, function (err) { })
     })
 }
 
@@ -124,93 +125,90 @@ async function getDadosCidade(cep) {
     cep = cep.replace(/\D/g, '');
 
     const aux = ceps.find(el => el.cep === cep)
-    if(aux)
+    if (aux)
         return aux
 
     if (cep.length === 8) {
 
         var axios = require('axios');
         const url = 'http://viacep.com.br/ws/' + cep + '/json/'
-    
+
         const res = await axios.get(url).catch(console.log)
-        if(!res)
+        if (!res)
             return undefined
 
-        ceps.push({cep: cep, data: res.data})
+        ceps.push({ cep: cep, data: res.data })
 
         return res.data
     }
 }
 
-async function getBillingValue(pedido, type)
-{
+async function getBillingValue(pedido, type) {
     const v = pedido.dataFat.billing_info.additional_info.find(el => el.type === type)
-    if(v)
+    if (v)
         return v.value
     else
         return ''
 }
 
-async function gravaPedido(pedido)
-{
-    if(pedido.status !== 'paid')
-        return            
-
-    if(await pedidoExistente(pedido))
+async function gravaPedido(pedido) {
+    if (pedido.status !== 'paid')
         return
-    
+
+    if (await pedidoExistente(pedido))
+        return
+
     const dataFat = await obterDadosFaturamento(pedido).catch(error => console.log(error))
-    const dataShip = await obterDadosShip(pedido).catch(error => console.log(error))    
+    const dataShip = await obterDadosShip(pedido).catch(error => console.log(error))
 
     pedido.dataFat = dataFat
     pedido.dataShip = dataShip
 
-    fs.writeFileSync('./pedido' + pedido.id + '--' + pedido.payments[0].id + '.txt', JSON.stringify(pedido, null, 2) , 'utf-8');
+    fs.writeFileSync('./pedido' + pedido.id + '--' + pedido.payments[0].id + '.txt', JSON.stringify(pedido, null, 2), 'utf-8');
 
     console.log('Gravando pedido: ' + pedido.id)
 
-    if(!pedido.dataShip)
-    {
+    if (!pedido.dataShip) {
         console.log('Pedido sem dataship:' + pedido.id)
         return
     }
-    
-    fs.writeFileSync('./pedido' + pedido.id + '--' + pedido.payments[0].id + '.txt', JSON.stringify(pedido, null, 2) , 'utf-8');
+
+    fs.writeFileSync('./pedido' + pedido.id + '--' + pedido.payments[0].id + '.txt', JSON.stringify(pedido, null, 2), 'utf-8');
 
     let sale_fee = 0;
     let totAux = 0
-    
+
     pedido.order_items.forEach(el => {
-        sale_fee += el.sale_fee 
+        sale_fee += el.sale_fee
         totAux += el.unit_price * el.quantity
     });
 
-    const freteT = pedido.dataShip.shipping_option.list_cost 
+    const freteT = pedido.dataShip.shipping_option.list_cost
     const freteAux = pedido.dataShip.shipping_option.cost
 
     const outrasDespesasT = sale_fee
     const totalNota = pedido.total_amount + freteAux
     const totalProdutos = totalNota - outrasDespesasT - freteT
-    
+
     const cnpjCPF = pedido.dataFat.billing_info.doc_number
 
     const ieRG = 'ISENTO'
     let razaoSocial = await getBillingValue(pedido, 'FIRST_NAME') + ' ' + await getBillingValue(pedido, 'LAST_NAME')
-    let razaoSocial2 =  await getBillingValue(pedido, 'BUSINESS_NAME')
+    let razaoSocial2 = await getBillingValue(pedido, 'BUSINESS_NAME')
     let fantasia = pedido.buyer.nickname
     let endereco = await getBillingValue(pedido, 'STREET_NAME')
-    let numero = await getBillingValue(pedido, 'STREET_NUMBER') 
+    let numero = await getBillingValue(pedido, 'STREET_NUMBER')
     let bairro = await getBillingValue(pedido, 'NEIGHBORHOOD')
     let cep = await getBillingValue(pedido, 'ZIP_CODE')
-    
-    if(!razaoSocial || razaoSocial.toString().trim() == '')
+
+    if (!razaoSocial || razaoSocial.toString().trim() == '')
         razaoSocial = razaoSocial2
 
-    razaoSocial = razaoSocial.toString().toUpperCase().replace(`'`,`''`)
-    fantasia = fantasia.toString().toUpperCase().replace(`'`,`''`)
-    fantasia = fantasia.toString().toUpperCase().replace(`'`,`''`)
-    endereco = endereco.toString().toUpperCase().replace(`'`,`''`)
-    bairro = bairro.toString().toUpperCase().replace(`'`,`''`)    
+    razaoSocial = razaoSocial.toString().toUpperCase().replace(`'`, `''`)
+    fantasia = fantasia.toString().toUpperCase().replace(`'`, `''`)
+    fantasia = fantasia.toString().toUpperCase().replace(`'`, `''`)
+    endereco = endereco.toString().toUpperCase().replace(`'`, `''`)
+    bairro = bairro.toString().toUpperCase().replace(`'`, `''`)
 
     const dadosCidade = await getDadosCidade(cep).catch(err => console.log('Não conseguiu obter dados cidade:' + pedido.id + '-' + cep + err))
 
@@ -218,23 +216,20 @@ async function gravaPedido(pedido)
     let cidade = 'CAPIVARI'
     let estado = 'SP'
 
-    if(!dadosCidade)
-    {
-        console.log('Sem dados cidade' + cep)    
+    if (!dadosCidade) {
+        console.log('Sem dados cidade' + cep)
     }
-    else if(!dadosCidade.ibge)
-    {
-        console.log('Sem dados IBGE' + cep)        
-    } 
-    else
-    {    
+    else if (!dadosCidade.ibge) {
+        console.log('Sem dados IBGE' + cep)
+    }
+    else {
         cep = dadosCidade.cep
         idCidade = dadosCidade.ibge
         cidade = dadosCidade.localidade
-        estado = dadosCidade.uf 
+        estado = dadosCidade.uf
     }
 
-    cidade = cidade.toString().toUpperCase().replace(`'`,`''`)
+    cidade = cidade.toString().toUpperCase().replace(`'`, `''`)
 
     //const telefone = pedido.buyer.phone.number
     const telefone = pedido.dataShip.receiver_address.receiver_phone
@@ -288,10 +283,10 @@ async function gravaPedido(pedido)
 
     strSQLPedidos = ''
 
-    await pedido.order_items.forEach(async (el,i) => {
+    await pedido.order_items.forEach(async (el, i) => {
         const freteI = freteT / totAux * (el.unit_price * el.quantity)
         const freteIAux = freteAux / totAux * (el.unit_price * el.quantity)
-        strSQLPedidos += await getSTRSQLPedidoItens(el, i, freteI, freteIAux)    
+        strSQLPedidos += await getSTRSQLPedidoItens(el, i, freteI, freteIAux)
     });
 
     const strSQLItenizar = `
@@ -304,31 +299,30 @@ async function gravaPedido(pedido)
     await executeSQL(strSQL + strSQLPedidos + strSQLItenizar).catch(err => {
         const fs = require('fs');
         console.log('Erro SQL' + err + strSQL + strSQLPedidos)
-        fs.appendFile('message.txt', strSQL + strSQLPedidos, function (err) {})
+        fs.appendFile('message.txt', strSQL + strSQLPedidos, function (err) { })
     })
 }
 
-async function getSTRSQLPedidoItens(item, i, freteI, freteAux){
+async function getSTRSQLPedidoItens(item, i, freteI, freteAux) {
 
     let quantidade = item.quantity
-    const valorUnitario = item.unit_price 
+    const valorUnitario = item.unit_price
     const valorTotal = item.unit_price * item.quantity
     const outrasDespesasI = item.sale_fee
 
     let codigo = item.item.seller_sku
-    if(!codigo)
+    if (!codigo)
         codigo = item.item.seller_custom_field
 
-    let  strSQL = ''
+    let strSQL = ''
     codigo.split('|').forEach(async aux => {
 
         aux = aux.split('(')
 
         let q = quantidade
         const codigoInternoManual = aux[0].trim()
-        if(aux.length > 1)
-        {
-            const nx = aux[1].replace( /^\D+/g, '')
+        if (aux.length > 1) {
+            const nx = aux[1].replace(/^\D+/g, '')
             q = q * parseInt(nx)
         }
 
@@ -353,5 +347,5 @@ async function getSTRSQLPedidoItens(item, i, freteI, freteAux){
 }
 
 module.exports = {
-    gravaPedido: gravaPedido    
+    gravaPedido: gravaPedido
 };
