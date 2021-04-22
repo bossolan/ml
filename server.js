@@ -31,8 +31,8 @@ setTimeout(function(){ getPedido('4460307034') }, 21000);
 //setTimeout(function(){ getPedidos() }, 25000); 
 //getPedidos()
 
-cron.schedule("*/25 * * * *", () => { console.log("Executando a tarefa a cada 25 minutos"); getPedidos()} );
-cron.schedule("0 */3 * * *", () => { console.log("Executando a tarefa a 3 horas"); refreshToken()} );
+cron.schedule("*/10 * * * *", () => { console.log("Executando a tarefa a cada 25 minutos"); getPedidos()} );
+cron.schedule("0 */2 * * *", () => { console.log("Executando a tarefa a 3 horas"); refreshToken()} );
 
 app.listen(process.env.PORT || 3030, () =>{
     console.log('App listening on port ' + (process.env.PORT || 3030));

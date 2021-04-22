@@ -22,7 +22,7 @@ async function getToken(req, res){
     axios.post('https://api.mercadolibre.com/oauth/token', null, { params: data})
       .then(response => {
             setP('ml_access_token',response.data.access_token)
-            setP('ml_global.user_id',response.data.user_id)
+            setP('ml_user_id',response.data.user_id)
             setP('ml_refresh_token',response.data.refresh_token)
 
             console.log('Token Obtido:' + response.data.access_token)            
