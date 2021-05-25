@@ -37,9 +37,9 @@ async function obterDadosShip(pedido) {
         return res.data
     }
     catch (err) {
-        console.log(err)
+        console.log(err.data)
     }
-    
+
     return undefined    
 }
 
@@ -201,6 +201,9 @@ async function gravaPedido(pedido) {
     let bairro = await getBillingValue(pedido, 'NEIGHBORHOOD')
     let cep = await getBillingValue(pedido, 'ZIP_CODE')
 
+    if(bairro === '' || !bairro)
+        bairro = 'SEM BAIRRO'
+
     if (!razaoSocial || razaoSocial.toString().trim() == '')
         razaoSocial = razaoSocial2
 
@@ -232,7 +235,7 @@ async function gravaPedido(pedido) {
     cidade = cidade.toString().toUpperCase().replace(`'`, `''`)
 
     //const telefone = pedido.buyer.phone.number
-    const telefone = pedido.dataShip.receiver_address.receiver_phone
+    const telefone = !pedido.dataShip || !pedido.dataShip.receiver_address ? pedido.buyer.phone.number : pedido.dataShip.receiver_address.receiver_phone
 
     const numeroDoPedidoDoCliente = pedido.payments.reduce((acc, v) => !acc ? '#' + v.id : acc + ' ' + '#' + v.id, '')
 
@@ -296,6 +299,7 @@ async function gravaPedido(pedido) {
     `
 
     console.log('Inserindo')
+    console.log(strSQL)
     await executeSQL(strSQL + strSQLPedidos + strSQLItenizar).catch(err => {
         const fs = require('fs');
         console.log('Erro SQL' + err + strSQL + strSQLPedidos)
