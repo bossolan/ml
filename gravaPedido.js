@@ -95,8 +95,8 @@ async function adicionaItens(idPedidoSistema, numeroDoPedidoDoCliente, pedido) {
     update PedidosDeVendaItens set item = item * 1000 where idPedido = @idPedido
     `
 
-    const freteT = pedido.dataShip.shipping_option.list_cost
-    const freteAux = pedido.dataShip.shipping_option.cost
+    const freteT = !pedido.dataShip ? 0 : pedido.dataShip.shipping_option.list_cost
+    const freteAux = !pedido.dataShip ? 0 : pedido.dataShip.shipping_option.cost
 
     let totAux = 0
     pedido.order_items.forEach(el => { totAux += el.unit_price * el.quantity });
@@ -152,11 +152,17 @@ async function getBillingValue(pedido, type) {
 }
 
 async function gravaPedido(pedido) {
+
+    console.log(pedido.status)
+
     if (pedido.status !== 'paid')
         return
 
     if (await pedidoExistente(pedido))
-        return
+    {
+        console.log('Pedido existente')
+        return    
+    }
 
     const dataFat = await obterDadosFaturamento(pedido).catch(error => console.log(error))
     const dataShip = await obterDadosShip(pedido).catch(error => console.log(error))
@@ -168,11 +174,6 @@ async function gravaPedido(pedido) {
 
     console.log('Gravando pedido: ' + pedido.id)
 
-    if (!pedido.dataShip) {
-        console.log('Pedido sem dataship:' + pedido.id)
-        return
-    }
-
     fs.writeFileSync('./pedido' + pedido.id + '--' + pedido.payments[0].id + '.txt', JSON.stringify(pedido, null, 2), 'utf-8');
 
     let sale_fee = 0;
@@ -183,8 +184,8 @@ async function gravaPedido(pedido) {
         totAux += el.unit_price * el.quantity
     });
 
-    const freteT = pedido.dataShip.shipping_option.list_cost
-    const freteAux = pedido.dataShip.shipping_option.cost
+    const freteT = !pedido.dataShip ? 0 : pedido.dataShip.shipping_option.list_cost
+    const freteAux = !pedido.dataShip ? 0 : pedido.dataShip.shipping_option.cost
 
     const outrasDespesasT = sale_fee
     const totalNota = pedido.total_amount + freteAux
